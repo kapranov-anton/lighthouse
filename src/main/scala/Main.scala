@@ -7,7 +7,10 @@ import com.googlecode.lanterna.input.KeyType.{
   ArrowRight,
   ArrowUp}
 
+
 object Main extends App {
+
+  /*
   var posX = 0
   var posY = 0
 
@@ -32,4 +35,5 @@ object Main extends App {
   screen.setCursorPosition(null)
   loop()
   screen.stopScreen()
+  */
 }
