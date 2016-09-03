@@ -1,3 +1,5 @@
+package kaa.lighthouse
+
 import scala.annotation.tailrec
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
@@ -10,7 +12,6 @@ import com.googlecode.lanterna.input.KeyType.{
 
 object Main extends App {
 
-  /*
   var posX = 0
   var posY = 0
 
@@ -18,6 +19,15 @@ object Main extends App {
     val tg = screen.newTextGraphics()
     tg.fill('.')
     tg.putString(posX, posY, "@")
+    tg.drawLine(4,1,6,9,'*')
+    Util.line(Point(7,1), Point(9,9)).foreach { p =>
+      tg.setCharacter(p.toTerminalPosition, '*')
+    }
+    /*
+    Util.ray(Point(7,1), Point(9,9)).foreach { p =>
+      tg.setCharacter(p.toTerminalPosition, '*')
+    }
+    */
     screen.refresh()
 
     screen.readInput().getKeyType() match {
@@ -35,5 +45,4 @@ object Main extends App {
   screen.setCursorPosition(null)
   loop()
   screen.stopScreen()
-  */
 }

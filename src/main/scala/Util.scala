@@ -1,10 +1,17 @@
 package kaa.lighthouse
 
+import com.googlecode.lanterna.TerminalPosition
+
+
+case class Point(x: Int, y: Int) {
+  def toTerminalPosition = new TerminalPosition(x, y)
+  def swap() = Point(y, x)
+}
 
 object Util {
-  type Point = (Int, Int)
-
-  def trace(dx: Int, dy: Int, delta: Float, x0: Int, y0: Int, x1: Int, y1: Int): List[Point] = {
+  def trace(x0: Int, y0: Int, x1: Int, y1: Int): List[Point] = {
+    val dx = x1 - x0
+    val dy = y1 - y0
     val dxAbs = dx.abs
     val dyAbs = dy.abs
     val n = 1 + dxAbs + dyAbs
@@ -15,52 +22,75 @@ object Util {
     val acc = (List[Point](), x0, y0, dxAbs - dyAbs)
     (n to 1 by -1).foldLeft(acc) {
       case ((prevPoints, x, y, error), _) =>
-        val points = (x, y) :: prevPoints
+        val points = Point(x, y) :: prevPoints
 
         if (error > 0) (points, x + incX, y,        error - dy2)
         else           (points, x,        y + incY, error + dx2)
     }._1
   }
 
-  def bresenham(dx: Int, dy: Int, delta: Float, x0: Int, y0: Int, x1: Int, y1: Int): List[Point] = {
-    val deltaAbs = delta.abs
+  def bresenham(x0: Int, y0: Int, x1: Int, y1: Int): List[Point] = {
+    val dx = x1 - x0
+    val dy = y1 - y0
+    val dxAbs = dx.abs
+    val dyAbs = dy.abs
     val incY = dy.signum
-    val acc = (List[Point](), y0, -1.0)
+    val initError = 0.0
+    val acc = (List[Point](), y0, initError)
+
     val (resultLine, _, _) =
       (x0 to (x1 - 1)).foldLeft(acc) {
         case ((prevPoints, y, prevError), x) =>
-          val points = (x, y) :: prevPoints
-          val error = prevError + deltaAbs
+          val points = Point(x, y) :: prevPoints
+          val error = prevError + dyAbs
 
-          if (error >= 0) (points, y + incY, error - 1)
-          else            (points, y,        error)
+          if (2 * error >= dxAbs) {
+            (points, y + incY, error - dxAbs)
+          } else {
+            (points, y, error)
+          }
       }
 
-    (x1, y1) :: resultLine
+    Point(x1, y1) :: resultLine
   }
 
 
-  def plot(func: (Int, Int, Float, Int, Int, Int, Int) => List[Point])
+  def plot(func: (Int, Int, Int, Int) => List[Point])
           (from: Point, to: Point): List[Point] = {
-    val ((x0, y0), (x1, y1)) =
-      if (from._1 <= to._1) {
-        (from, to)
-      } else {
-        (to, from)
-      }
+    val (Point(x0, y0), Point(x1, y1)) = (from, to)
 
     val dx = x1 - x0
     val dy = y1 - y0
     val delta = dy.toFloat / dx
 
+    // vertical
     if (x0 == x1) {
-      (y0 to y1).map((x0, _)).toList
+      (y0 to y1).map(Point(x0, _)).toList
+    // horizontal
     } else if (y0 == y1) {
-      (x0 to x1).map((_, y0)).toList
+      (x0 to x1).map(Point(_, y0)).toList
+    // diagonal
     } else if (delta.abs == 1) {
-      (x0 to x1).zip(y0 to y1).toList
+      (if (x0 < x1) {
+        ((x0 to x1), (y0 to y1))
+      } else {
+        ((x1 to x0), (y1 to y0))
+      }).zipped.map(Point(_, _)).toList
     } else {
-      func(dx, dy, delta, x0, y0, x1, y1)
+      if (delta < 1) {
+        if (x0 < x1) {
+          func(x0, y0, x1, y1)
+        } else {
+          func(x1, y1, x0, y0)
+        }
+      } else {
+        (if (y0 < y1) {
+          println(111111111)
+          func(y0, x0, y1, x1)
+        } else {
+          func(y1, x1, y0, x0)
+        }).map(_.swap)
+      }
     }
   }
 
